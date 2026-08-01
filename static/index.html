@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KlipperGram - 3D Yazıcı Yönetim Paneli</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header / Printer Status Badge -->
+        <header class="header glass-card">
+            <div class="printer-info">
+                <div class="printer-icon">🖨️</div>
+                <div>
+                    <h1>KlipperGram <span style="font-size:0.6em; opacity:0.8;">Universal</span></h1>
+                    <span id="printer-state" class="status-badge state-standby">Bağlanıyor...</span>
+                </div>
+            </div>
+            <button id="btn-refresh" class="btn-icon" title="Yenile">🔄</button>
+        </header>
+
+        <!-- Live Print Progress Card (Hidden if not printing) -->
+        <section id="progress-card" class="glass-card progress-card" style="display: none;">
+            <div class="progress-header">
+                <span class="file-name" id="print-filename">Dosya adı...</span>
+                <span class="progress-percent" id="print-progress-text">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="print-progress-bar" style="width: 0%;"></div>
+            </div>
+            <div class="progress-meta">
+                <span>⏱ <b id="print-duration">0 dk</b></span>
+                <span>📐 Z: <b id="print-z">0.0 mm</b></span>
+            </div>
+            <div class="print-controls">
+                <button id="btn-pause" class="btn btn-warning">⏸ Duraklat</button>
+                <button id="btn-resume" class="btn btn-success" style="display: none;">▶️ Devam Et</button>
+                <button id="btn-cancel" class="btn btn-danger">⏹ İptal</button>
+            </div>
+        </section>
+
+        <!-- Webcam Snapshot Feed -->
+        <section class="glass-card cam-card">
+            <div class="card-title">
+                <span>📷 Canlı Kamera Görüntüsü</span>
+                <button id="btn-cam-refresh" class="btn-xs">Anlık Çek</button>
+            </div>
+            <div class="cam-container">
+                <img id="webcam-img" src="/api/snapshot" alt="Webcam" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"%23777\" stroke-width=\"2\"><path d=\"M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z\"/><circle cx=\"12\" cy=\"13\" r=\"4\"/></svg>';">
+            </div>
+        </section>
+
+        <!-- Temperatures & Quick Profiles -->
+        <section class="grid-2">
+            <div class="glass-card temp-card nozzle">
+                <div class="temp-icon">🔥</div>
+                <div class="temp-details">
+                    <span class="temp-label">Nozzle (Extruder)</span>
+                    <div class="temp-val"><span id="temp-extruder">20.0</span>°C</div>
+                    <span class="temp-target">Hedef: <b id="target-extruder">0</b>°C</span>
+                </div>
+            </div>
+            <div class="glass-card temp-card bed">
+                <div class="temp-icon">🛏️</div>
+                <div class="temp-details">
+                    <span class="temp-label">Isıtıcı Tabla (Bed)</span>
+                    <div class="temp-val"><span id="temp-bed">20.0</span>°C</div>
+                    <span class="temp-target">Hedef: <b id="target-bed">0</b>°C</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Temperature Preset Buttons & LED -->
+        <section class="glass-card controls-card">
+            <div class="card-title">⚡ Hızlı Kontrol & Isıtma Profilleri</div>
+            <div class="preset-grid">
+                <button class="btn-preset" data-ext="200" data-bed="60">🟢 PLA (200/60)</button>
+                <button class="btn-preset" data-ext="240" data-bed="70">🟡 PETG (240/70)</button>
+                <button class="btn-preset" data-ext="220" data-bed="50">🟣 TPU (220/50)</button>
+                <button class="btn-preset btn-cool" data-ext="0" data-bed="0">❄️ Soğut (0/0)</button>
+            </div>
+            <div class="led-control">
+                <button id="btn-led" class="btn btn-primary w-100">💡 LED Işığı Aç / Kapat</button>
+            </div>
+        </section>
+
+        <!-- G-Code Files List -->
+        <section class="glass-card files-card">
+            <div class="card-title">
+                <span>📁 Son G-code Dosyaları</span>
+                <button id="btn-files-refresh" class="btn-xs">Yenile</button>
+            </div>
+            <ul id="files-list" class="files-list">
+                <li class="loading-item">Dosyalar yükleniyor...</li>
+            </ul>
+        </section>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">İşlem başarılı!</div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

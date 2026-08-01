@@ -1,0 +1,32 @@
+# Environments & Virtual
+venv/
+env/
+.env
+*.env
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Configuration & Secrets (Gereksiz yere GitHub'a yüklenmesin)
+config.json
+*.log
+*.sqlite3
+
+# Media & Temporary Streams
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.mp4
+live.jpg
+snapshot.jpg
+status.jpg
+cam.jpg
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

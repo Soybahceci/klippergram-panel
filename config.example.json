@@ -1,0 +1,25 @@
+{
+  "telegram": {
+    "bot_token": "YOUR_TELEGRAM_BOT_TOKEN_HERE",
+    "allowed_users": [123456789],
+    "enable_notifications": true,
+    "notify_on_layer_change": false,
+    "notify_interval_minutes": 15
+  },
+  "moonraker": {
+    "url": "http://127.0.0.1",
+    "api_key": ""
+  },
+  "webcam": {
+    "enabled": true,
+    "snapshot_url": "http://127.0.0.1/webcam/?action=snapshot",
+    "flip_horizontal": false,
+    "flip_vertical": false
+  },
+  "webapp": {
+    "enabled": true,
+    "host": "0.0.0.0",
+    "port": 8085,
+    "public_url": ""
+  }
+}
