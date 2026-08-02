@@ -81,13 +81,13 @@ def get_main_keyboard() -> InlineKeyboardMarkup:
 def get_clear_bed_keyboard() -> InlineKeyboardMarkup:
     buttons = [
         [
+            InlineKeyboardButton(text="🚜 Fanlarla Buldozer (Z=1.5mm)", callback_data="clear_bed_1.5")
+        ],
+        [
             InlineKeyboardButton(text="🧹 Z=3mm (Küçük Parça)", callback_data="clear_bed_3")
         ],
         [
             InlineKeyboardButton(text="🧹 Z=5mm (Orta Parça)", callback_data="clear_bed_5")
-        ],
-        [
-            InlineKeyboardButton(text="🧹 Z=10mm (Büyük Parça)", callback_data="clear_bed_10")
         ],
         [
             InlineKeyboardButton(text="🌪 Atalet Modu (Hızlı Sallama)", callback_data="shake_bed")
