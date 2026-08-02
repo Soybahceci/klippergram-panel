@@ -12,7 +12,7 @@ if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
         pass
 
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputFile, WebAppInfo
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputFile, WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils import executor
 from config import config
 from moonraker_client import moonraker_client
@@ -126,6 +126,12 @@ def get_temp_keyboard() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
+def get_persistent_keyboard() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    kb.row(KeyboardButton("🤖 Ana Menü"), KeyboardButton("🧹 Tablayı Temizle"))
+    kb.row(KeyboardButton("🚨 Acil Durdur!"))
+    return kb
+
 @dp.message_handler(commands=["start", "help", "menu"])
 async def cmd_start(message: types.Message):
     if not check_auth(message.from_user.id):
@@ -136,6 +142,7 @@ async def cmd_start(message: types.Message):
         "Klipper tabanlı yazıcınızı aşağıdaki butonlar ile kolayca yönetebilir, anlık durumunu inceleyebilir veya canlı kamera takibi yapabilirsiniz.\n\n"
         "💡 *İpucu:* Konsol komutu göndermek için `/gcode <komut>` yazabilirsiniz. (Örn: `/gcode STATUS`)"
     )
+    await message.answer("Klavye butonları aktifleştirildi! 👇", reply_markup=get_persistent_keyboard())
     await message.answer(text, reply_markup=get_main_keyboard(), parse_mode="Markdown")
 
 @dp.message_handler(commands=["gcode", "c", "console"])
@@ -431,8 +438,29 @@ async def cmd_fallback(message: types.Message):
     if not check_auth(message.from_user.id):
         return await message.reply(f"⛔ **Yetkisiz Erişim!** (Sizin ID'niz: `{message.from_user.id}`)\nBu yazıcıyı kontrol etme yetkiniz yok.", parse_mode="Markdown")
     
+    text = message.text.strip()
+    if text == "🤖 Ana Menü":
+        await cmd_start(message)
+        return
+    elif text == "🧹 Tablayı Temizle":
+        await message.answer(
+            "🧹 **Tablayı Temizleme (Otomatik Sıyırma)**\n\n"
+            "Nozzle'ın parçaya hangi yükseklikten çarpmasını istediğinizi seçin.\n\n"
+            "⚠️ *Yazıcı 'Homed' durumunu kaybettiyse güvenlik gereği hareket etmeyi reddeder.*",
+            reply_markup=get_clear_bed_keyboard(),
+            parse_mode="Markdown"
+        )
+        return
+    elif text == "🚨 Acil Durdur!":
+        res = await moonraker_client.emergency_stop()
+        if not res.get("error"):
+            await message.answer("🚨 ACİL DURDURMA KOMUTU GÖNDERİLDİ!")
+        else:
+            await message.answer(f"❌ Hata: {res.get('message')}")
+        return
+
     await message.answer(
-        "🤖 **KlipperGram - Evrensel Yönetim Paneli**\n\nİşlem yapmak için aşağıdaki butonları kullanabilir veya ana menüye dönmek için /start yazabilirsiniz:",
+        "🤖 **KlipperGram - Evrensel Yönetim Paneli**\n\nİşlem yapmak için aşağıdaki butonları kullanabilir veya klavye menüsünü açabilirsiniz:",
         reply_markup=get_main_keyboard(),
         parse_mode="Markdown"
     )
