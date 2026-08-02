@@ -125,8 +125,10 @@ G1 Z50 F1200
         """Tablayı hızlıca ileri geri sallayarak objeyi düşürme (Atalet Modu)."""
         script = "G90\nG1 Z50 F1200\n" # Güvenli yükseklik
         for _ in range(10):
-            script += "G1 Y220 F15000\n" # 250mm/s hızla geri
-            script += "G1 Y0 F15000\n"   # 250mm/s hızla ileri
+            script += "G1 Y220 F30000\n" # Maksimum hızla (500mm/s)
+            script += "G1 Y0 F30000\n"   
+        # Son vuruş: Tablayı son hızla öne it (Y225) ve orada bırak ki obje öne fırlasın
+        script += "G1 Y225 F30000\n"
         return await self.send_gcode(script)
 
     async def resume_print(self) -> dict:
