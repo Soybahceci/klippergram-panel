@@ -71,6 +71,26 @@ def get_main_keyboard() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(text="💡 LED Işık", callback_data="toggle_led"),
             InlineKeyboardButton(text="🚨 Acil Durdur (E-Stop)", callback_data="estop")
+        ],
+        [
+            InlineKeyboardButton(text="🧹 Tablayı Temizle", callback_data="clear_bed_menu")
+        ]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+def get_clear_bed_keyboard() -> InlineKeyboardMarkup:
+    buttons = [
+        [
+            InlineKeyboardButton(text="🧹 Z=3mm (Küçük Parça)", callback_data="clear_bed_3")
+        ],
+        [
+            InlineKeyboardButton(text="🧹 Z=5mm (Orta Parça)", callback_data="clear_bed_5")
+        ],
+        [
+            InlineKeyboardButton(text="🧹 Z=10mm (Büyük Parça)", callback_data="clear_bed_10")
+        ],
+        [
+            InlineKeyboardButton(text="🔙 Ana Menü", callback_data="main_menu")
         ]
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -113,9 +133,28 @@ async def cmd_start(message: types.Message):
     
     text = (
         "🤖 **KlipperGram - Evrensel 3D Yazıcı Yönetim Paneline Hoş Geldiniz!**\n\n"
-        "Klipper tabanlı yazıcınızı aşağıdaki butonlar ile kolayca yönetebilir, anlık durumunu inceleyebilir veya canlı kamera takibi yapabilirsiniz."
+        "Klipper tabanlı yazıcınızı aşağıdaki butonlar ile kolayca yönetebilir, anlık durumunu inceleyebilir veya canlı kamera takibi yapabilirsiniz.\n\n"
+        "💡 *İpucu:* Konsol komutu göndermek için `/gcode <komut>` yazabilirsiniz. (Örn: `/gcode STATUS`)"
     )
     await message.answer(text, reply_markup=get_main_keyboard(), parse_mode="Markdown")
+
+@dp.message_handler(commands=["gcode", "c", "console"])
+async def cmd_gcode(message: types.Message):
+    if not check_auth(message.from_user.id):
+        return
+    
+    command = message.get_args().strip()
+    if not command:
+        return await message.reply("⚠️ **Kullanım:** `/gcode <komut>`\nÖrnek: `/gcode STATUS` veya `/c G28`", parse_mode="Markdown")
+        
+    wait_msg = await message.reply(f"⏳ Komut gönderiliyor: `{command}`...", parse_mode="Markdown")
+    response = await moonraker_client.send_and_read_console(command)
+    
+    # Çok uzun yanıtları Telegram limitine takılmaması için sınırla
+    if len(response) > 3500:
+        response = response[:3500] + "\n... (Çıktı çok uzun, kırpıldı)"
+        
+    await bot.edit_message_text(f"🖥 **Konsol Çıktısı:**\n```text\n{response}\n```", chat_id=message.chat.id, message_id=wait_msg.message_id, parse_mode="Markdown")
 
 @dp.message_handler(commands=["status"])
 async def cmd_status(message: types.Message):
@@ -269,6 +308,30 @@ async def send_file_list(chat_id: int):
     buttons.append([InlineKeyboardButton(text="🔙 Ana Menü", callback_data="main_menu")])
     kb = InlineKeyboardMarkup(inline_keyboard=buttons)
     await bot.send_message(chat_id, "📁 **Yazıcıdaki G-code Dosyaları:**\nBaskıyı başlatmak için bir dosyaya tıklayın:", reply_markup=kb, parse_mode="Markdown")
+
+@dp.callback_query_handler(lambda c: c.data == "clear_bed_menu")
+async def process_clear_bed_menu(callback_query: types.CallbackQuery):
+    if not check_auth(callback_query.from_user.id): return
+    await bot.edit_message_text(
+        "🧹 **Tablayı Temizleme (Otomatik Sıyırma)**\n\n"
+        "Nozzle'ın parçaya hangi yükseklikten (Z ekseni) çarpmasını istediğinizi seçin.\n\n"
+        "⚠️ *Yazıcı 'Homed' durumunu kaybettiyse güvenlik gereği hareket etmeyi reddeder.*",
+        chat_id=callback_query.message.chat.id,
+        message_id=callback_query.message.message_id,
+        reply_markup=get_clear_bed_keyboard(),
+        parse_mode="Markdown"
+    )
+
+@dp.callback_query_handler(lambda c: c.data.startswith("clear_bed_") and c.data != "clear_bed_menu")
+async def process_clear_bed_action(callback_query: types.CallbackQuery):
+    if not check_auth(callback_query.from_user.id): return
+    try:
+        strike_z = float(callback_query.data.split("_")[2])
+    except:
+        return
+        
+    await bot.answer_callback_query(callback_query.id, text=f"🚀 Tablayı temizleme başlatıldı (Z={strike_z}mm)", show_alert=True)
+    await moonraker_client.clear_bed(strike_z)
 
 @dp.callback_query_handler(lambda c: True)
 async def callback_handler(callback: types.CallbackQuery):

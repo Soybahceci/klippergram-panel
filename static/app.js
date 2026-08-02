@@ -28,7 +28,10 @@ document.addEventListener("DOMContentLoaded", () => {
         btnLed: document.getElementById("btn-led"),
         filesList: document.getElementById("files-list"),
         btnFilesRefresh: document.getElementById("btn-files-refresh"),
-        toast: document.getElementById("toast")
+        toast: document.getElementById("toast"),
+        consoleOutput: document.getElementById("console-output"),
+        consoleInput: document.getElementById("console-input"),
+        btnConsoleSend: document.getElementById("btn-console-send")
     };
 
     function showToast(message, isError = false) {
@@ -208,6 +211,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     DOM.btnFilesRefresh.addEventListener("click", loadFiles);
+
+    // G-Code Console Olayları
+    async function sendConsoleCommand() {
+        const cmd = DOM.consoleInput.value.trim();
+        if (!cmd) return;
+        
+        DOM.consoleInput.value = "";
+        
+        // Kullanıcının yazdığını ekrana bas
+        const cmdLine = document.createElement("div");
+        cmdLine.className = "console-line command";
+        cmdLine.textContent = "> " + cmd;
+        DOM.consoleOutput.appendChild(cmdLine);
+        DOM.consoleOutput.scrollTop = DOM.consoleOutput.scrollHeight;
+        
+        const res = await apiCall("/api/control", "POST", { action: "console_command", script: cmd });
+        if (res && !res.error && res.message) {
+            const resLine = document.createElement("div");
+            resLine.className = "console-line response";
+            resLine.textContent = res.message;
+            DOM.consoleOutput.appendChild(resLine);
+            DOM.consoleOutput.scrollTop = DOM.consoleOutput.scrollHeight;
+        }
+    }
+
+    DOM.btnConsoleSend.addEventListener("click", sendConsoleCommand);
+    DOM.consoleInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendConsoleCommand();
+    });
 
     // Başlangıç yüklemeleri ve periyodik güncelleme
     updateStatus();

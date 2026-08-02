@@ -42,6 +42,10 @@ async def api_control(request):
         elif action == "gcode":
             script = data.get("script")
             res = await moonraker_client.send_gcode(script)
+        elif action == "console_command":
+            script = data.get("script")
+            res_text = await moonraker_client.send_and_read_console(script)
+            return web.json_response({"error": False, "message": res_text})
         else:
             return web.json_response({"error": True, "message": "Geçersiz işlem!"}, status=400)
             

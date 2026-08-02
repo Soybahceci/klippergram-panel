@@ -76,8 +76,50 @@ class MoonrakerClient:
         """Klipper üzerine G-code komutu gönderir."""
         return await self._post("/printer/gcode/script", params={"script": script})
 
+    async def send_and_read_console(self, script: str) -> str:
+        """G-code komutu gönderir ve Klipper konsol çıktısını (yanıtını) okur."""
+        res = await self.send_gcode(script)
+        if res.get("error"):
+            return f"❌ Hata: {res.get('message')}"
+        
+        # Klipper'ın komutu işleyip konsola basması için kısa süre bekle
+        await asyncio.sleep(0.5)
+        
+        # Moonraker gcode_store'dan son yanıtları çek
+        store_res = await self._get("/server/gcode_store", params={"count": 15})
+        if store_res.get("error"):
+            return "✅ Komut gönderildi (Konsol okunamadı)."
+            
+        store = store_res.get("result", {}).get("gcode_store", [])
+        responses = []
+        
+        # Sondan başa doğru (en yeni) kendi komutumuzu bulana kadar gelen 'response' tipindeki mesajları topla
+        for item in reversed(store):
+            if item.get("type") == "command" and item.get("message") == script:
+                break
+            if item.get("type") == "response":
+                responses.insert(0, item.get("message"))
+                
+        if not responses:
+            return "✅ Komut gönderildi (Konsol yanıtı yok)."
+            
+        return "\n".join(responses)
+
     async def pause_print(self) -> dict:
         return await self._post("/printer/print/pause")
+
+    async def clear_bed(self, strike_z: float) -> dict:
+        """Tablayı otomatik süpürme (Ataletle obje düşürme) otomasyonu."""
+        script = f"""
+G90
+G1 Z{strike_z + 10} F1200
+G1 X115 Y220 F3000
+G1 Z{strike_z} F1200
+G1 Y0 F6000
+G1 X0 Y220 F3000
+G1 Z50 F1200
+"""
+        return await self.send_gcode(script)
 
     async def resume_print(self) -> dict:
         return await self._post("/printer/print/resume")

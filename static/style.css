@@ -360,3 +360,74 @@ body {
 .toast.show {
     transform: translateX(-50%) translateY(0);
 }
+
+/* Console UI */
+.console-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.console-output {
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 12px;
+    height: 200px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.console-line {
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+.console-line.text-muted {
+    color: var(--text-secondary);
+}
+
+.console-line.command {
+    color: var(--accent-primary);
+    font-weight: bold;
+}
+
+.console-line.response {
+    color: var(--success);
+}
+
+.console-line.error {
+    color: var(--danger);
+}
+
+.console-input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.console-input-group input {
+    flex: 1;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #fff;
+    font-family: monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.console-input-group input:focus {
+    border-color: var(--accent-primary);
+}
+
+.console-input-group button {
+    flex-shrink: 0;
+    width: auto;
+    padding: 0 20px;
+}
