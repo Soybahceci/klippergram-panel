@@ -121,6 +121,14 @@ G1 Z50 F1200
 """
         return await self.send_gcode(script)
 
+    async def shake_bed(self) -> dict:
+        """Tablayı hızlıca ileri geri sallayarak objeyi düşürme (Atalet Modu)."""
+        script = "G90\nG1 Z50 F1200\n" # Güvenli yükseklik
+        for _ in range(10):
+            script += "G1 Y220 F15000\n" # 250mm/s hızla geri
+            script += "G1 Y0 F15000\n"   # 250mm/s hızla ileri
+        return await self.send_gcode(script)
+
     async def resume_print(self) -> dict:
         return await self._post("/printer/print/resume")
 

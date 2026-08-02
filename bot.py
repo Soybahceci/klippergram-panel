@@ -90,6 +90,9 @@ def get_clear_bed_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="🧹 Z=10mm (Büyük Parça)", callback_data="clear_bed_10")
         ],
         [
+            InlineKeyboardButton(text="🌪 Atalet Modu (Hızlı Sallama)", callback_data="shake_bed")
+        ],
+        [
             InlineKeyboardButton(text="🔙 Ana Menü", callback_data="main_menu")
         ]
     ]
@@ -339,6 +342,12 @@ async def process_clear_bed_action(callback_query: types.CallbackQuery):
         
     await bot.answer_callback_query(callback_query.id, text=f"🚀 Tablayı temizleme başlatıldı (Z={strike_z}mm)", show_alert=True)
     await moonraker_client.clear_bed(strike_z)
+
+@dp.callback_query_handler(lambda c: c.data == "shake_bed")
+async def process_shake_bed(callback_query: types.CallbackQuery):
+    if not check_auth(callback_query.from_user.id): return
+    await bot.answer_callback_query(callback_query.id, text="🌪 Atalet Modu! Tabla 10 kez hızlıca sallanıyor...", show_alert=True)
+    await moonraker_client.shake_bed()
 
 @dp.callback_query_handler(lambda c: True)
 async def callback_handler(callback: types.CallbackQuery):
